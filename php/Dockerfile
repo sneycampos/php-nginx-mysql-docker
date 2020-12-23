@@ -16,8 +16,16 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     libmagickwand-dev
 
+# Install nodejs
+RUN curl -sL https://deb.nodesource.com/setup_14.x -o nodesource_setup.sh && bash nodesource_setup.sh && apt-get -y --force-yes install nodejs
+
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Upgrading Node
+RUN npm cache clean -f
+RUN npm install -g n
+RUN n stable
 
 RUN pecl install imagick \
     && docker-php-ext-enable imagick
@@ -29,7 +37,8 @@ RUN docker-php-ext-install pdo_mysql mbstring zip exif pcntl bcmath gd
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Create system user to run Composer and Artisan Commands
-RUN useradd -G www-data,root -u $uid -d /home/$user $user
+RUN useradd -G www-data,root -u $uid -d /home/$user $user || true
+
 RUN mkdir -p /home/$user/.composer && \
     chown -R $user:$user /home/$user
 
