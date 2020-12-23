@@ -6,35 +6,48 @@ services:
   # Nginx Service
   nginx:
     build: ./nginx
+    restart: unless-stopped
     ports:
       - 80:80
     volumes:
-      - ./../:/var/www:ro
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./../:/var/www
+      - ./nginx/conf.d:/etc/nginx/conf.d
     depends_on:
       - php
 
   # PHP Service
   php:
-    build: ./php
+    build:
+      args:
+        user: www-data
+        uid: 1000
+      context: ./php
+      dockerfile: Dockerfile
     working_dir: /var/www/
+    restart: unless-stopped
     volumes:
       - ./../:/var/www/
+      - ./php/custom.ini:/usr/local/etc/php/conf.d/custom.ini:rw,delegated
     depends_on:
-      - mysql
+      - database
       - redis
 
-  # MySQL Service
-  mysql:
-    image: mysql:8
+  # Database Service
+  database:
+    image: mariadb
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: demo
+        MYSQL_USER: root
+        MYSQL_PASSWORD: root
+        MYSQL_DATABASE: default
+        MYSQL_ROOT_PASSWORD: root
     volumes:
-      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf:ro
-      - mysqldata:/var/lib/mysql
+       - mysqldata:/var/lib/mysql
+      # If you want to persist data on the host, comment the line above this one...
+      # and uncomment the line under this one.
+      # - ./mysql/data:/var/lib/mysql:rw,delegated
     ports:
-      - "3306:3306"
+      - "33006:3306"
       # Volumes
 
   # Redis Service
