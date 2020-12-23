@@ -1,0 +1,62 @@
+version: '3.7'
+
+# Services
+services:
+
+  # Nginx Service
+  nginx:
+    build: ./nginx
+    ports:
+      - 80:80
+    volumes:
+      - ./../:/var/www:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - php
+
+  # PHP Service
+  php:
+    build: ./php
+    working_dir: /var/www/
+    volumes:
+      - ./../:/var/www/
+    depends_on:
+      - mysql
+      - redis
+
+  # MySQL Service
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: demo
+    volumes:
+      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+      - mysqldata:/var/lib/mysql
+    ports:
+      - "3306:3306"
+      # Volumes
+
+  # Redis Service
+  redis:
+    image: redis:6-alpine
+    command: [ "redis-server", "--appendonly", "yes", "--requirepass", "toGwNuPX7HVe6fwI+W3y5znnupaQYBn3MwBZjO1q7Sg=" ]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+
+  # Scheduler Service
+  scheduler:
+    image: mcuadros/ofelia:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./scheduler/config.ini:/etc/ofelia/config.ini
+    depends_on:
+      - php
+
+volumes:
+
+  mysqldata:
+
+  redisdata:
