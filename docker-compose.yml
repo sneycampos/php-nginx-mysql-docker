@@ -25,9 +25,6 @@ services:
     volumes:
       - ./../:/var/www/
       - ./php/custom.ini:/usr/local/etc/php/conf.d/custom.ini:rw,delegated
-    depends_on:
-      - database
-      - redis
 
   # Database Service
   database:
