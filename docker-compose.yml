@@ -28,23 +28,31 @@ services:
       - ./../:/var/www/
       - ./php/custom.ini:/usr/local/etc/php/conf.d/custom.ini:rw,delegated
 
-  # Database Service
-  database:
+  # Database Services
+
+  #mysql
+  mariadb:
     image: mariadb
     restart: always
     environment:
-        MYSQL_USER: root
-        MYSQL_PASSWORD: root
-        MYSQL_DATABASE: default
-        MYSQL_ROOT_PASSWORD: root
+        MYSQL_DATABASE: ${MYSQL_DATABASE}
+        MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     volumes:
        - mysqldata:/var/lib/mysql
-      # If you want to persist data on the host, comment the line above this one...
-      # and uncomment the line under this one.
-      # - ./mysql/data:/var/lib/mysql:rw,delegated
     ports:
-      - "33006:3306"
-      # Volumes
+      - "3306:3306"
+
+  # postgres with postgis
+  postgres:
+    build: ./postgres
+    volumes:
+      - postgresdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
   # Redis Service
   redis:
@@ -64,8 +72,12 @@ services:
     depends_on:
       - php
 
+# Volumes
 volumes:
 
   mysqldata:
-
+    driver: local
+  postgresdata:
+    driver: local
   redisdata:
+    driver:local
