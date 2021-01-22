@@ -1,4 +1,4 @@
-FROM mdillon/postgis:latest
+FROM postgis/postgis:12-master
 
 CMD ["postgres"]
 

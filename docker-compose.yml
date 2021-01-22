@@ -42,7 +42,7 @@ services:
     ports:
       - "3306:3306"
 
-  # postgres with postgis
+  # postgres with postgis + gdal
   postgres:
     build: ./postgres
     volumes:
