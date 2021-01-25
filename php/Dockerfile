@@ -2,29 +2,69 @@ ARG PHP_VERSION
 
 FROM php:${PHP_VERSION}-fpm
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
-    unzip \
-    libzip-dev \
-    libmagickwand-dev \
-    libpq-dev
+# apt-get install
+RUN set -ex && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        wget \
+        curl \
+        zip \
+        unzip \
+        sqlite3 \
+        autoconf \
+        automake \
+        postgis \
+        libtool \
+        libtiff5 \
+        libpq-dev \
+        libzip-dev \
+        libpng-dev \
+        libonig-dev \
+        libmagickwand-dev \
+        libcurl4-gnutls-dev \
+        libsqlite3-dev
 
 # Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo_mysql pdo_pgsql mbstring zip exif pcntl bcmath gd
+RUN docker-php-ext-install pdo_mysql pdo_pgsql mbstring zip exif pcntl bcmath gd && \
+    printf "\n" | pecl install imagick && \
+    docker-php-ext-enable imagick
 
-# Install pecl extensions
-RUN printf "\n" | pecl install imagick
+# proj4
+ENV PROJ_VERSION master
+#ENV PROJ_GIT_HASH 28aa4f13095eb69438d47f30663f13bd8780c0c1
 
-# Enable extensions
-RUN docker-php-ext-enable imagick
+RUN set -ex \
+    && cd /usr/src \
+    && mkdir proj \
+    && wget -q https://github.com/OSGeo/PROJ/archive/${PROJ_VERSION}.tar.gz -O - \
+        | tar xz -C proj --strip-components=1 \
+    && cd proj \
+    && ./autogen.sh \
+    && ./configure --disable-static \
+    && make -j$(nproc) \
+    && make install \
+    && cd / \
+    && rm -fr /usr/src/PROJ
+
+# gdal
+ENV GDAL_VERSION master
+
+RUN set -ex \
+    && cd /usr/src \
+    && mkdir gdal \
+    && wget -q https://github.com/OSGeo/gdal/archive/${GDAL_VERSION}.tar.gz -O - \
+        | tar xz -C gdal --strip-components=1 \
+    && cd gdal/gdal \
+    && ./autogen.sh \
+    && ./configure --disable-static \
+    && make -j$(nproc) \
+    && make install \
+    && cd / \
+    && rm -fr /usr/src/gdal
 
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
