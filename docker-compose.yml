@@ -22,6 +22,7 @@ services:
       dockerfile: Dockerfile
       args:
         - PHP_VERSION=${PHP_VERSION}
+        - INSTALL_POSTGIS=${INSTALL_POSTGIS}
     working_dir: /var/www/
     restart: unless-stopped
     volumes:

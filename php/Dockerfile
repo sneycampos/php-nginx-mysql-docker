@@ -14,6 +14,11 @@ RUN apt-get update && apt-get install -y \
     libmagickwand-dev \
     libpq-dev
 
+ARG INSTALL_POSTGIS
+RUN if [ ${INSTALL_POSTGIS} = true ]; then \
+    apt-get -yqq install postgis \
+;fi
+
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
