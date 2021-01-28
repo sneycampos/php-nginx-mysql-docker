@@ -23,11 +23,16 @@ services:
       args:
         - PHP_VERSION=${PHP_VERSION}
         - INSTALL_POSTGIS=${INSTALL_POSTGIS}
+        - INSTALL_XDEBUG=${INSTALL_XDEBUG}
+        - INSTALL_NODEJS=${INSTALL_NODEJS}
+    environment:
+      PHP_IDE_CONFIG: ${XDEBUG_SERVER_NAME}
     working_dir: /var/www/
     restart: unless-stopped
     volumes:
       - ./../:/var/www/
       - ./php/custom.ini:/usr/local/etc/php/conf.d/custom.ini:rw,delegated
+      - ./php/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
 
   # Database Services
 

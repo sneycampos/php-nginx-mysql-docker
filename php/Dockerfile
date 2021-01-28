@@ -14,32 +14,39 @@ RUN apt-get update && apt-get install -y \
     libmagickwand-dev \
     libpq-dev
 
+# Install PHP extensions
+RUN docker-php-ext-install pdo_mysql pdo_pgsql mbstring zip exif pcntl bcmath gd
+
+# Install and enable pecl extensions
+RUN pecl install imagick && \
+    docker-php-ext-enable imagick
+
+#Install xdebug
+ARG INSTALL_XDEBUG
+RUN if [ ${INSTALL_XDEBUG} = true ]; then \
+    pecl install xdebug-2.9.8 && docker-php-ext-enable xdebug \
+;fi
+
+#Install postgis
 ARG INSTALL_POSTGIS
 RUN if [ ${INSTALL_POSTGIS} = true ]; then \
     apt-get -yqq install postgis \
 ;fi
 
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql pdo_pgsql mbstring zip exif pcntl bcmath gd
-
-# Install pecl extensions
-RUN printf "\n" | pecl install imagick
-
-# Enable extensions
-RUN docker-php-ext-enable imagick
+# Install nodejs
+ARG INSTALL_NODEJS
+RUN if [ ${INSTALL_NODEJS} = true ]; then \
+    curl -sL https://deb.nodesource.com/setup_14.x -o nodesource_setup.sh && bash nodesource_setup.sh && apt-get -q -y install nodejs \
+;fi
 
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Install nodejs
-RUN curl -sL https://deb.nodesource.com/setup_14.x -o nodesource_setup.sh && bash nodesource_setup.sh && apt-get -q -y install nodejs
-
 # Add user for laravel application
-RUN groupadd -g 1000 www
-RUN useradd -u 1000 -ms /bin/bash -g www www
+RUN groupadd -g 1000 www && useradd -u 1000 -ms /bin/bash -g www www
+
+# Clear cache
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy existing application directory contents
 COPY . /var/www
