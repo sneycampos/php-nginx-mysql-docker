@@ -33,6 +33,8 @@ services:
       - ./../:/var/www/
       - ./php/custom.ini:/usr/local/etc/php/conf.d/custom.ini:rw,delegated
       - ./php/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # Database Services
 
