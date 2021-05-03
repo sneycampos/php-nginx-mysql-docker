@@ -6,6 +6,6 @@ Feel free and send pull requests to improve this project.
 
 
 How to use:
-Clone this repository and put into your project root folder, e.g: "laravel-project/docker"
-
-Enter into the "docker" folder and run on terminal ```docker-compose up -d``` 
+- Clone this repository and put into your project root folder, e.g: "laravel-project/docker"
+- set your project name in COMPOSE_PROJECT_NAME variable into the .env file
+- Using any terminal, enter into the "docker" folder and run ```docker-compose up -d``` 
