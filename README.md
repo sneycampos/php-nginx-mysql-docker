@@ -9,5 +9,7 @@ It is a simple setup to PHP Developers build their applications using PHP in Doc
  > project-folder/docker
  - Change the COMPOSE_PROJECT_NAME variable into the .env file to your project name
 >  (it will be used in your container names, e.g: project1-nginx, project1-mysql)
-
-- Using terminal, enter into the "docker" folder and run `docker-compose up -d` 
+>  
+- Using terminal, enter into the "docker" folder and run:
+```bash 
+docker-compose up -d
