@@ -1,6 +1,11 @@
-# web-dev-docker
+# PHP + NGINX + MYSQL + POSTGRES + DOCKER
 
-Clone this repository and put into a "docker" folder in your project
+Simple setup to PHP Developers build their applications using PHP 
 
-Enter into the "docker" folder and run docker-compose up -d 
+Feel free and send pull requests to improve this project.
 
+
+How to use:
+Clone this repository and put into your project root folder, e.g: "laravel-project/docker"
+
+Enter into the "docker" folder and run on terminal ```docker-compose up -d``` 
