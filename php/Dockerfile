@@ -1,5 +1,6 @@
 ## PHP INSTALLATION
-FROM php:7.4-fpm
+ARG PHP_VERSION
+FROM php:${PHP_VERSION}-fpm
 
 # apt-get install
 RUN set -ex && \
