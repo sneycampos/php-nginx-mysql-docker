@@ -25,6 +25,7 @@ services:
         - INSTALL_POSTGIS=${INSTALL_POSTGIS}
         - INSTALL_XDEBUG=${INSTALL_XDEBUG}
         - INSTALL_NODEJS=${INSTALL_NODEJS}
+        - INSTALL_PYTHON=${INSTALL_PYTHON}
     environment:
       PHP_IDE_CONFIG: ${XDEBUG_SERVER_NAME}
     working_dir: /var/www/

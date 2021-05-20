@@ -30,13 +30,23 @@ RUN if [ ${INSTALL_XDEBUG} = true ]; then \
 #Install postgis
 ARG INSTALL_POSTGIS
 RUN if [ ${INSTALL_POSTGIS} = true ]; then \
-    apt-get -yqq install postgis \
+    apt-get -y install postgis \
 ;fi
 
 # Install nodejs
 ARG INSTALL_NODEJS
 RUN if [ ${INSTALL_NODEJS} = true ]; then \
     curl -sL https://deb.nodesource.com/setup_14.x -o nodesource_setup.sh && bash nodesource_setup.sh && apt-get -q -y install nodejs \
+;fi
+
+# Install Python
+ARG INSTALL_PYTHON
+RUN if [ ${INSTALL_PYTHON} = true ]; then \
+    apt-get -y install python3.7 python3-pip && \
+    update-alternatives --install /usr/bin/python python /usr/bin/python3.7 1 && \
+    update-alternatives --set python /usr/bin/python3.7 && \
+    python -m pip install --upgrade pip && \
+    pip install openpyxl pillow \
 ;fi
 
 # Get latest Composer
@@ -53,6 +63,9 @@ COPY . /var/www
 
 # Copy existing application directory permissions
 COPY --chown=www:www . /var/www
+
+RUN touch /var/log/export.log
+RUN chown www:www /var/log/export.log
 
 # Change current user to www
 USER www
