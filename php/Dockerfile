@@ -1,11 +1,10 @@
-ARG PHP_VERSION
-
-FROM php:${PHP_VERSION}-fpm
+## PHP INSTALLATION
+FROM php:7.4-fpm
 
 # apt-get install
 RUN set -ex && \
     apt-get update && \
-    apt-get install -y --no-install-recommends \
+    apt-get install -yqq --no-install-recommends \
         wget \
         curl \
         zip \
@@ -13,29 +12,55 @@ RUN set -ex && \
         sqlite3 \
         autoconf \
         automake \
-        postgis \
+        autotools-dev \
         libtool \
-        libtiff5 \
-        libpq-dev \
         libzip-dev \
         libpng-dev \
         libonig-dev \
+        libxml2-dev \
         libmagickwand-dev \
+        libpq-dev \
+        libcurl3-gnutls \
+        libtiff5 \
         libcurl4-gnutls-dev \
-        libsqlite3-dev
-
-# Clear cache
-RUN apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+        libsqlite3-dev \
+        libtiff-dev \
+        libfreetype6-dev \
+        libjpeg62-turbo-dev \
+        libwebp-dev
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo_mysql pdo_pgsql mbstring zip exif pcntl bcmath gd && \
+RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql pgsql mbstring zip exif pcntl bcmath
+
+RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql && \
     printf "\n" | pecl install imagick && \
     docker-php-ext-enable imagick
 
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+
+RUN docker-php-ext-install gd
+
+#Install xdebug
+ARG INSTALL_XDEBUG
+RUN if [ ${INSTALL_XDEBUG} = true ]; then \
+    pecl install xdebug-2.9.8 && docker-php-ext-enable xdebug \
+;fi
+
+#Install postgis
+ARG INSTALL_POSTGIS
+RUN if [ ${INSTALL_POSTGIS} = true ]; then \
+    apt-get update && apt-get -y install postgis \
+;fi
+
+# Install nodejs
+ARG INSTALL_NODEJS
+RUN if [ ${INSTALL_NODEJS} = true ]; then \
+    curl -sL https://deb.nodesource.com/setup_14.x -o nodesource_setup.sh && bash nodesource_setup.sh && apt-get -q -y install nodejs \
+;fi
+
 # proj4
 ENV PROJ_VERSION master
-#ENV PROJ_GIT_HASH 28aa4f13095eb69438d47f30663f13bd8780c0c1
+ENV PROJ_GIT_HASH 28aa4f13095eb69438d47f30663f13bd8780c0c1
 
 RUN set -ex \
     && cd /usr/src \
@@ -48,7 +73,7 @@ RUN set -ex \
     && make -j$(nproc) \
     && make install \
     && cd / \
-    && rm -fr /usr/src/PROJ
+    && rm -fr /usr/src/proj
 
 # gdal
 ENV GDAL_VERSION master
@@ -66,6 +91,10 @@ RUN set -ex \
     && cd / \
     && rm -fr /usr/src/gdal
 
+# Clear cache
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
@@ -73,8 +102,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 RUN curl -sL https://deb.nodesource.com/setup_14.x -o nodesource_setup.sh && bash nodesource_setup.sh && apt-get -q -y install nodejs
 
 # Add user for laravel application
-RUN groupadd -g 1000 www
-RUN useradd -u 1000 -ms /bin/bash -g www www
+RUN groupadd -g 1000 www && useradd -u 1000 -ms /bin/bash -g www www
 
 # Copy existing application directory contents
 COPY . /var/www
