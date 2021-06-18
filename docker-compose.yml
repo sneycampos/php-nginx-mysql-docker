@@ -43,12 +43,12 @@ services:
     image: yobasystems/alpine-mariadb
     restart: always
     environment:
-        MYSQL_DATABASE: ${MYSQL_DATABASE}
-        MYSQL_USER: ${MYSQL_USER}
-        MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-        MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     volumes:
-       - mysqldata:/var/lib/mysql
+      - mysqldata:/var/lib/mysql
     ports:
       - "3306:3306"
 
@@ -72,6 +72,18 @@ services:
       - "6379:6379"
     volumes:
       - redisdata:/data
+
+  php-worker:
+    build:
+      context: ./php-worker
+      dockerfile: Dockerfile
+      args:
+        - PHP_VERSION=${PHP_VERSION}
+    volumes:
+      - ./../:/var/www/
+      - ./php-worker/conf/supervisord.conf:/etc/supervisor/supervisord.conf
+      - ./php-worker/conf/supervisor-programs.conf:/etc/supervisor/conf.d/app.conf
+    command: [ "supervisord", "-c", "/etc/supervisor/supervisord.conf" ]
 
 # Volumes
 volumes:
