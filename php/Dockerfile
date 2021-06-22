@@ -92,6 +92,9 @@ RUN set -ex \
     && cd / \
     && rm -fr /usr/src/gdal
 
+# updates the lib file headers to gdal
+RUN ldconfig
+
 # Clear cache
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/*
