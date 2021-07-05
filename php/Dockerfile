@@ -6,29 +6,15 @@ FROM php:${PHP_VERSION}-fpm
 RUN set -ex && \
     apt-get update && \
     apt-get install -yqq --no-install-recommends \
-        wget \
         curl \
-        zip \
-        unzip \
-        sqlite3 \
-        autoconf \
-        automake \
-        autotools-dev \
-        libtool \
-        libzip-dev \
         libpng-dev \
         libonig-dev \
         libxml2-dev \
+        zip \
+        unzip \
+        libzip-dev \
         libmagickwand-dev \
-        libpq-dev \
-        libcurl3-gnutls \
-        libtiff5 \
-        libcurl4-gnutls-dev \
-        libsqlite3-dev \
-        libtiff-dev \
-        libfreetype6-dev \
-        libjpeg62-turbo-dev \
-        libwebp-dev
+        libpq-dev
 
 # Install PHP extensions
 RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql pgsql mbstring zip exif pcntl bcmath
@@ -59,38 +45,15 @@ RUN if [ ${INSTALL_NODEJS} = true ]; then \
     curl -sL https://deb.nodesource.com/setup_14.x -o nodesource_setup.sh && bash nodesource_setup.sh && apt-get -q -y install nodejs \
 ;fi
 
-# proj4
-ENV PROJ_VERSION master
-ENV PROJ_GIT_HASH 28aa4f13095eb69438d47f30663f13bd8780c0c1
+# Install python and pip
+RUN apt-get -y install python3 python3-pip && \
+    update-alternatives --install /usr/bin/python python /usr/bin/python3 1 && \
+    update-alternatives --set python /usr/bin/python3 && \
+    python -m pip install --upgrade pip
 
-RUN set -ex \
-    && cd /usr/src \
-    && mkdir proj \
-    && wget -q https://github.com/OSGeo/PROJ/archive/${PROJ_VERSION}.tar.gz -O - \
-        | tar xz -C proj --strip-components=1 \
-    && cd proj \
-    && ./autogen.sh \
-    && ./configure --disable-static \
-    && make -j$(nproc) \
-    && make install \
-    && cd / \
-    && rm -fr /usr/src/proj
-
-# gdal
-ENV GDAL_VERSION master
-
-RUN set -ex \
-    && cd /usr/src \
-    && mkdir gdal \
-    && wget -q https://github.com/OSGeo/gdal/archive/${GDAL_VERSION}.tar.gz -O - \
-        | tar xz -C gdal --strip-components=1 \
-    && cd gdal/gdal \
-    && ./autogen.sh \
-    && ./configure --disable-static \
-    && make -j$(nproc) \
-    && make install \
-    && cd / \
-    && rm -fr /usr/src/gdal
+# Install GDAL
+RUN apt-get install -y gdal-bin libgdal-dev
+RUN pip install GDAL==$(gdal-config --version) --global-option=build_ext --global-option="-I/usr/include/gdal"
 
 # updates the lib file headers to gdal
 RUN ldconfig
@@ -101,9 +64,6 @@ RUN apt-get clean && \
 
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Install nodejs
-RUN curl -sL https://deb.nodesource.com/setup_14.x -o nodesource_setup.sh && bash nodesource_setup.sh && apt-get -q -y install nodejs
 
 # Add user for laravel application
 RUN groupadd -g 1000 www && useradd -u 1000 -ms /bin/bash -g www www
