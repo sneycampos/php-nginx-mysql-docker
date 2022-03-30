@@ -1,4 +1,4 @@
-FROM postgis/postgis:12-master
+FROM postgis/postgis:14-master
 
 CMD ["postgres"]
 
